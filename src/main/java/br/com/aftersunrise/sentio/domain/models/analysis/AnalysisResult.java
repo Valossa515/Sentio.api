@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Table(name = "analysis_results")
 @Data
 @SuperBuilder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class AnalysisResult extends DatabaseEntityBase implements Serializable {

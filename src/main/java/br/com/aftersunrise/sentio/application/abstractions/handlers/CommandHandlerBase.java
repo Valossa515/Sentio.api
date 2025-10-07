@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-public abstract class CommandHandlerBase<TCommand extends ICommand<TResponse>, TResponse>
+public abstract class CommandHandlerBase <TCommand extends ICommand<TResponse>, TResponse>
         implements IHandler<TCommand, TResponse> {
 
     private final Validator validator;
@@ -28,7 +28,7 @@ public abstract class CommandHandlerBase<TCommand extends ICommand<TResponse>, T
     @Override
     public CompletableFuture<HandlerResponseWithResult<TResponse>> execute(TCommand request) {
         return CompletableFuture.supplyAsync(() -> {
-            try{
+            try {
                 if (validator != null) {
                     Set<ConstraintViolation<TCommand>> violations = validator.validate(request);
                     if (!violations.isEmpty()) {
@@ -37,8 +37,8 @@ public abstract class CommandHandlerBase<TCommand extends ICommand<TResponse>, T
                 }
 
                 return doExecute(request).join();
-            }
-            catch (ConstraintViolationException e){
+
+            } catch (ConstraintViolationException e) {
                 HandlerResponseWithResult<TResponse> response = new HandlerResponseWithResult<>();
                 response.setStatusCode(400);
                 response.setMessages(
@@ -48,8 +48,8 @@ public abstract class CommandHandlerBase<TCommand extends ICommand<TResponse>, T
                                 .toList()
                 );
                 return response;
-            }
-            catch (Exception e) {
+
+            } catch (Exception e) {
                 logger.error("Unexpected error: {}", e.getMessage(), e);
 
                 HandlerResponseWithResult<TResponse> response = new HandlerResponseWithResult<>();
