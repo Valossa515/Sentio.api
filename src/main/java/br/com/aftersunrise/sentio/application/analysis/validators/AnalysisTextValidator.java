@@ -5,24 +5,32 @@ import br.com.aftersunrise.sentio.application.analysis.validators.annotations.Va
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class AnalysisTextValidator implements ConstraintValidator<ValidAnalysisText, AnalyzeTextCommand> {
+import java.util.List;
 
+public class AnalysisTextValidator implements ConstraintValidator<ValidAnalysisText, AnalyzeTextCommand> {
 
     @Override
     public boolean isValid(AnalyzeTextCommand value, ConstraintValidatorContext context) {
         if (value == null) return false;
 
-        boolean valid = true;
-
-        // 1. Texto não nulo e não vazio
-        if (value.text() == null || value.text().isBlank()) {
-            context.buildConstraintViolationWithTemplate("O texto para análise é obrigatório")
-                    .addPropertyNode("text").addConstraintViolation();
-            valid = false;
-        }
-        if (!valid) {
+        List<String> texts = value.texts();
+        if (texts == null || texts.isEmpty()) {
             context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate("A lista de textos para análise não pode estar vazia.")
+                    .addPropertyNode("texts")
+                    .addConstraintViolation();
+            return false;
         }
-        return valid;
+
+        boolean hasInvalid = texts.stream().anyMatch(t -> t == null || t.isBlank());
+        if (hasInvalid) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate("Todos os textos devem ser preenchidos corretamente.")
+                    .addPropertyNode("texts")
+                    .addConstraintViolation();
+            return false;
+        }
+
+        return true;
     }
 }
