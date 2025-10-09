@@ -7,14 +7,20 @@ import br.com.aftersunrise.sentio.application.abstractions.interfaces.IAnalysisA
 import br.com.aftersunrise.sentio.application.abstractions.interfaces.IAnalyzeTextHandler;
 import br.com.aftersunrise.sentio.application.analysis.commands.AnalyzeTextCommand;
 import br.com.aftersunrise.sentio.application.analysis.data.AnalyzeTextResponse;
-import br.com.aftersunrise.sentio.domain.models.analysis.AnalysisResult;
-import br.com.aftersunrise.sentio.domain.models.analysis.enums.Sentiment;
+import br.com.aftersunrise.sentio.domain.models.analysis.enums.SentimentType;
 import br.com.aftersunrise.sentio.infrastructure.repositories.analysis.AnalysisResultRepository;
+import com.google.cloud.language.v1.AnalyzeSentimentResponse;
+import com.google.cloud.language.v1.Document;
+import com.google.cloud.language.v1.LanguageServiceClient;
 import jakarta.validation.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -34,52 +40,60 @@ public class AnalyzeTextCommandHandler extends CommandHandlerBase<AnalyzeTextCom
         this.adapter = adapter;
     }
 
-
     @Override
     protected CompletableFuture<HandlerResponseWithResult<AnalyzeTextResponse>>
         doExecute(AnalyzeTextCommand request) {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return Flux.fromIterable(request.texts())
+                .flatMap(this::analyzeSentimentAsync)
+                .map(result -> adapter.toAnalysisResult(
+                        new AnalyzeTextCommand(List.of(result.text())),
+                        result.sentiment(),
+                        result.score()))
+                .collectList()
+                .flatMapMany(results -> Flux.fromIterable(repository.saveAll(results))) // salva todos
+                .map(e -> new AnalyzeTextResponse.Item(
+                        e.getId(),
+                        e.getOriginalText(),
+                        e.getSentimentType(),
+                        e.getConfidenceScore(),
+                        e.getAnalysisTimestamp()))
+                .collectList()
+                .map(AnalyzeTextResponse::new)
+                .map(this::success)
+                .onErrorResume(ex -> {
+                    logger.error("Erro durante a análise reativa: {}", ex.getMessage(), ex);
+                    return Mono.just(badRequest(ex.getMessage(), MessageResources.get("error.creating.text.analysis")));
+                })
+                .toFuture();
+    }
 
-            try {
-                var iaResult = simularAnaliseDeIA(request.text());
+    private Mono<SentimentResult> analyzeSentimentAsync(String text) {
+        return Mono.fromCallable(() -> {
+            try (LanguageServiceClient language = LanguageServiceClient.create()) {
+                Document doc = Document.newBuilder()
+                        .setContent(text)
+                        .setType(Document.Type.PLAIN_TEXT)
+                        .build();
 
-                // 2. **Adapter**: Converter o comando e o resultado da IA para a nossa entidade de domínio.
-                AnalysisResult analysisResult = adapter.toAnalysisResult(
-                        request,
-                        iaResult.sentiment(),
-                        iaResult.score()
+                AnalyzeSentimentResponse response = language.analyzeSentiment(doc);
+                var sentiment = response.getDocumentSentiment();
+
+                return new SentimentResult(
+                        text,
+                        mapSentiment(sentiment.getScore()),
+                        (double) sentiment.getScore()
                 );
-
-                // 3. **Repository**: Persistir a entidade no banco de dados.
-                AnalysisResult savedResult = repository.save(analysisResult);
-
-                // 4. **Response**: Criar o DTO de resposta a partir da entidade salva.
-                return success(new AnalyzeTextResponse(
-                        savedResult.getId(),
-                        savedResult.getOriginalText(),
-                        savedResult.getSentiment(),
-                        savedResult.getConfidenceScore(),
-                        savedResult.getAnalysisTimestamp()
-                ));
-
-            } catch (Exception e) {
-                logger.error("Erro ao analisar o texto: {}", e.getMessage(), e);
-                return badRequest(e.getMessage(), MessageResources.get("error.creating.text.analysis"));
             }
-        });
-
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
-    private SentimentResult simularAnaliseDeIA(String text) {
-        if (text.toLowerCase().contains("ótimo") || text.toLowerCase().contains("adorei")) {
-            return new SentimentResult(Sentiment.POSITIVE, 0.98);
-        } else if (text.toLowerCase().contains("ruim") || text.toLowerCase().contains("odiei")) {
-            return new SentimentResult(Sentiment.NEGATIVE, 0.95);
-        }
-        return new SentimentResult(Sentiment.NEUTRAL, 0.85);
+
+    private SentimentType mapSentiment(float score) {
+        if (score >= 0.25) return SentimentType.POSITIVE;
+        if (score <= -0.25) return SentimentType.NEGATIVE;
+        return SentimentType.NEUTRAL;
     }
 
-    // Um record simples para encapsular o resultado da nossa simulação de IA.
-    private record SentimentResult(Sentiment sentiment, Double score) {}
+    private record SentimentResult(String text, SentimentType sentiment, Double score) {}
 }

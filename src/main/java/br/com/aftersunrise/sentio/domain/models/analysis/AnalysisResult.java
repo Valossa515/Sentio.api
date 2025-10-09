@@ -1,7 +1,7 @@
 package br.com.aftersunrise.sentio.domain.models.analysis;
 
 import br.com.aftersunrise.sentio.domain.models.DatabaseEntityBase;
-import br.com.aftersunrise.sentio.domain.models.analysis.enums.Sentiment;
+import br.com.aftersunrise.sentio.domain.models.analysis.enums.SentimentType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -21,13 +21,12 @@ public class AnalysisResult extends DatabaseEntityBase implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Lob
-    @Column(nullable = false, name = "original_text")
+    @Column(nullable = false, name = "original_text", columnDefinition = "text")
     private String originalText;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Sentiment sentiment;
+    private SentimentType sentimentType;
 
     @Column(nullable = false, name = "confidence_score")
     private Double confidenceScore;
