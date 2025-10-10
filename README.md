@@ -29,6 +29,7 @@ A aplicação utiliza **Docker Compose** para orquestrar os serviços de infraes
 - Docker e Docker Compose instalados  
 - Java **JDK 25+**
 - Credenciais do **Google Cloud Natural Language API** acessíveis ao ambiente (via SDK ou variável de ambiente)
+- Se já possui o Docker Desktop e rodar o projeto na IntelliJ não precisa se precocupar em executar os comandos do docker basta ter o plugin do docker na IDE.
 
 ---
 
@@ -64,7 +65,7 @@ Para rodar localmente via IDE:
   - Postgres: `localhost:5433`
 
 A API estará disponível em:  
-👉 **http://localhost:8080**
+👉 **http://localhost:8080/swagger-ui/index.html**
 
 ---
 
@@ -78,7 +79,7 @@ A API estará disponível em:
 **Descrição:**  
 Aceita um ou mais textos e envia para a fila de processamento Kafka.
 
-#### 📥 Exemplo de Payload
+#### 📥 Exemplos de Payload
 
 ```json
 {
@@ -87,6 +88,10 @@ Aceita um ou mais textos e envia para a fila de processamento Kafka.
         "Demorou muito para carregar, estou insatisfeito.",
         "Achei neutro, não tenho opinião formada."
     ]
+}
+
+{
+  "text": "Bom produto"
 }
 ```
 
@@ -201,10 +206,10 @@ spring.kafka.consumer.properties.spring.json.trusted.packages=*
 ## 🧑‍💻 Autor
 
 **Felipe Martins**  
-Desenvolvedor Fullstack | Especialista em Integrações Assíncronas e APIs Escaláveis  
+Desenvolvedor Fullstack
 
 📧 Contato: [fe.mmo515@gmail.com](mailto:fe.mmo515@gmail.com)
 
 ---
 
-> 💡 *Sentio API — Entendendo emoções, uma iu mais mensagens por vez.*
+> 💡 *Sentio API — Entendendo emoções, uma ou mais mensagens por vez.*
