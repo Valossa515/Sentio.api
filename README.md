@@ -64,7 +64,7 @@ Para rodar localmente via IDE:
   - Postgres: `localhost:5433`
 
 A API estará disponível em:  
-👉 **http://localhost:8080**
+👉 **http://localhost:8080/swagger-ui/index.html**
 
 ---
 
@@ -78,7 +78,7 @@ A API estará disponível em:
 **Descrição:**  
 Aceita um ou mais textos e envia para a fila de processamento Kafka.
 
-#### 📥 Exemplo de Payload
+#### 📥 Exemplos de Payload
 
 ```json
 {
@@ -87,6 +87,10 @@ Aceita um ou mais textos e envia para a fila de processamento Kafka.
         "Demorou muito para carregar, estou insatisfeito.",
         "Achei neutro, não tenho opinião formada."
     ]
+}
+
+{
+  "text": "Bom produto"
 }
 ```
 
