@@ -29,6 +29,7 @@ A aplicação utiliza **Docker Compose** para orquestrar os serviços de infraes
 - Docker e Docker Compose instalados  
 - Java **JDK 25+**
 - Credenciais do **Google Cloud Natural Language API** acessíveis ao ambiente (via SDK ou variável de ambiente)
+- Se já possui o Docker Desktop e rodar o projeto na IntelliJ não precisa se precocupar em executar os comandos do docker basta ter o plugin do docker na IDE.
 
 ---
 
