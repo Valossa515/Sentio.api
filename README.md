@@ -201,10 +201,10 @@ spring.kafka.consumer.properties.spring.json.trusted.packages=*
 ## 🧑‍💻 Autor
 
 **Felipe Martins**  
-Desenvolvedor Fullstack | Especialista em Integrações Assíncronas e APIs Escaláveis  
+Desenvolvedor Fullstack
 
 📧 Contato: [fe.mmo515@gmail.com](mailto:fe.mmo515@gmail.com)
 
 ---
 
-> 💡 *Sentio API — Entendendo emoções, uma iu mais mensagens por vez.*
+> 💡 *Sentio API — Entendendo emoções, uma ou mais mensagens por vez.*
