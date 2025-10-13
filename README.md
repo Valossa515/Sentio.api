@@ -113,14 +113,45 @@ Aceita um ou mais textos e envia para a fila de processamento Kafka.
 
 ---
 
-### 2. Consultar Resultados (🚧 Em Desenvolvimento)
+### 2. Métricas
 
 **Endpoint sugerido:**  
-`GET /api/text-analysis/v1/results`
+`GET /api/metrics/v1/dashboard`
 
 **Descrição:**  
-Retornará os resultados persistidos no banco (`AnalysisResultRepository`).
+Retornará as Métrticas para exposição em dashboards
 
+#### 📤 Exemplo de Resposta
+
+```json
+{
+  "totalProcessed": 0,
+  "totalSuccess": 0,
+  "totalFailures": 0,
+  "totalErrors": 0,
+  "totalInvalid": 0,
+  "durationStats": {
+    "meanSeconds": 0.1,
+    "maxSeconds": 0.1,
+    "totalSeconds": 0.1,
+    "count": 0
+  },
+  "sentimentDistribution": [
+    {
+      "sentiment": "string",
+      "count": 0.1
+    }
+  ],
+  "timeSeries": [
+    {
+      "timestamp": "string",
+      "processed": 0,
+      "success": 0,
+      "failures": 0
+    }
+  ]
+}
+```
 ---
 
 ## 🛠️ Detalhes Técnicos
@@ -169,6 +200,11 @@ spring.kafka.producer.value-serializer=org.springframework.kafka.support.seriali
 spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer
 spring.kafka.consumer.value-deserializer=org.springframework.kafka.support.serializer.JsonDeserializer
 spring.kafka.consumer.properties.spring.json.trusted.packages=*
+
+# Metrics
+management.endpoints.web.exposure.include=health,info,prometheus
+endpoint.prometheus.enabled=true
+metrics.tags.application=sentiment-analysis-service
 ```
 
 ---
