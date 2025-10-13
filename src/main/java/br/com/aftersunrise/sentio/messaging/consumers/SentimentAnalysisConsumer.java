@@ -56,7 +56,6 @@ public class SentimentAnalysisConsumer {
                 .register(registry);
     }
 
-    // Recebe mensagem JSON como String (cada evento do Kafka é uma mensagem JSON válida)
     @KafkaListener(topics = TOPIC_ANALYSIS_REQUESTS, groupId = "text-analysis-consumer")
     public void listenForTextAnalysis(String messageJson) {
         long start = System.nanoTime();
@@ -86,14 +85,12 @@ public class SentimentAnalysisConsumer {
                     JsonNode node = objectMapper.readTree(messageJson);
 
                     if (node.isArray()) {
-                        // Lista de objetos AnalysisMessage
                         for (JsonNode item : node) {
                             if (item.has("text")) {
                                 texts.add(item.get("text").asText());
                             }
                         }
                     } else if (node.isObject() && node.has("text")) {
-                        // Objeto único
                         texts.add(node.get("text").asText());
                     } else {
                         logger.warn("Mensagem em formato inesperado, ignorando: {}", messageJson);
@@ -128,8 +125,7 @@ public class SentimentAnalysisConsumer {
                         results.add(result);
                     }
 
-                    // Retorna o primeiro resultado apenas
-                    return results.get(0);
+                    return results.getFirst();
 
                 }).filter(Objects::nonNull)
                 .subscribeOn(Schedulers.boundedElastic());
